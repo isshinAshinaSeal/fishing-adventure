@@ -1,0 +1,17 @@
+{
+  "name": "fishing-adventure",
+  "version": "0.1.0",
+  "description": "3D Open-World Fishing Adventure: A stylized, single-player third-person fishing, boat exploration, property, and economy game.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test tests/*.test.js",
+    "smoke:expansion6": "node scripts/smoke-expansion6.mjs",
+    "smoke:expansion7": "node scripts/smoke-expansion7.mjs",
+    "smoke:expansion8": "node scripts/smoke-expansion8.mjs"
+  },
+  "dependencies": {
+    "three": "^0.186.1"
+  }
+}

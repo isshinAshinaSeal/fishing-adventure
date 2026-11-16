@@ -1,0 +1,22 @@
+================================================================================
+                 CARA MENJALANKAN: FISHING ADVENTURE
+================================================================================
+
+Game Petualangan Memancing 3D berbasis Three.js dan Node.js server.
+
+Persyaratan:
+- Node.js versi 18 ke atas
+- Browser modern dengan dukungan WebGL
+
+Langkah-langkah:
+1. Buka Terminal / PowerShell di folder ini:
+   cd "C:\Kuliah Sisfor\Github Project\fishing-adventure"
+
+2. Jalankan server game:
+   npm start
+   (atau: node server.js)
+
+3. Buka browser dan kunjungi alamat:
+   http://localhost:3000  atau  http://127.0.0.1:3000
+
+Untuk menghentikan: Tekan Ctrl + C di terminal.

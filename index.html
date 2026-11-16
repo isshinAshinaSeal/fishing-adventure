@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>3D Open-World Fishing Adventure — Master Edition</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐟</text></svg>">
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./styles/lobby.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three.module.js",
+        "three/": "./vendor/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <!-- ================= START LOBBY ================= -->
+  <div class="lobby-overlay" id="lobby-overlay">
+    <div class="lobby-sky-glow"></div>
+    <div class="lobby-horizon"></div>
+    <div class="lobby-sea"></div>
+    <div class="lobby-content">
+      <section class="lobby-brand">
+        <div class="lobby-eyebrow">OCEAN ODYSSEY · EXPANSION 7.0</div>
+        <h1>Fishing<br><span>Adventure</span></h1>
+        <p>Chart coral reefs, hunt pirate legends, build your fleet, farm the rooftops of Aurelia Heights and sail beyond the shipping lanes to the storm-scoured frontier archipelago.</p>
+        <div class="lobby-tags">
+          <span>164 fish</span><span>76 rods</span><span>Skyline City</span><span>Frontier Isles</span>
+        </div>
+      </section>
+
+      <section class="lobby-menu-card">
+        <div class="lobby-menu-head">
+          <span class="lobby-status-dot"></span>
+          <span>Harbor link ready</span>
+          <span class="lobby-menu-coins">💰 <span id="lobby-coins">50</span></span>
+        </div>
+        <button class="lobby-menu-btn lobby-primary" id="lobby-start">
+          <span class="lobby-btn-icon">⚓</span>
+          <span class="lobby-btn-copy"><strong>Start</strong><small>Set sail for Driftwood Isle</small></span>
+          <span class="lobby-btn-arrow">→</span>
+        </button>
+        <button class="lobby-menu-btn" id="lobby-open-credits">
+          <span class="lobby-btn-icon">📜</span>
+          <span class="lobby-btn-copy"><strong>Credits</strong><small>Meet the crew behind the tide</small></span>
+          <span class="lobby-btn-arrow">→</span>
+        </button>
+        <button class="lobby-menu-btn" id="lobby-open-skins">
+          <span class="lobby-btn-icon">🧥</span>
+          <span class="lobby-btn-copy"><strong>Skin Shop</strong><small>Buy and equip new angler outfits</small></span>
+          <span class="lobby-btn-arrow">→</span>
+        </button>
+        <button class="lobby-menu-btn" id="lobby-open-customize">
+          <span class="lobby-btn-icon">🎨</span>
+          <span class="lobby-btn-copy"><strong>Character Customization</strong><small>Colours, hats and a live preview</small></span>
+          <span class="lobby-btn-arrow">→</span>
+        </button>
+        <p class="lobby-save-note">Your coins, fleet and look are saved on this device.</p>
+      </section>
+    </div>
+
+    <section class="lobby-sheet" id="lobby-credits-panel" style="display: none;">
+      <div class="lobby-sheet-head">
+        <div><span class="lobby-kicker">THE CREW</span><h2>Credits</h2></div>
+        <button class="lobby-back" data-lobby-back>← Back</button>
+      </div>
+      <div class="lobby-credits-grid">
+        <div><strong>Ocean Odyssey</strong><span>Open-world fishing adventure</span></div>
+        <div><strong>Design & Engineering</strong><span>Freebuff coding agent + the project team</span></div>
+        <div><strong>Engine</strong><span>Three.js · custom terrain, boats, weather and fishing systems</span></div>
+        <div><strong>Content</strong><span>164 fish · 40 vessels · 14 biomes · 36 named NPCs · 8 island huts</span></div>
+        <div><strong>Expansion 6.0</strong><span>Aurelia Heights skyline city, 76 rods, 31 fishing tools, rooftop farming, tree chopping, mining and 10 city boats</span></div>
+        <div><strong>Expansion 7.0</strong><span>Tempest Spire, Aurora Isle, Glasswind Cay and Serpent Reef · 24 frontier fish · 8 expedition fishing platforms</span></div>
+        <div><strong>Special thanks</strong><span>Every angler who kept casting after the first bite.</span></div>
+      </div>
+    </section>
+
+    <section class="lobby-sheet lobby-sheet-wide" id="lobby-skins-panel" style="display: none;">
+      <div class="lobby-sheet-head">
+        <div><span class="lobby-kicker">APPEARANCE</span><h2>Skin Shop</h2><p>Buy an outfit once, own it forever. Purely visual.</p></div>
+        <div class="lobby-sheet-actions">
+          <span class="lobby-wallet">💰 <span id="lobby-skin-coins">50</span> coins</span>
+          <button class="lobby-back" data-lobby-back>← Back</button>
+        </div>
+      </div>
+      <div class="skin-shop-grid" id="lobby-skin-grid"></div>
+      <p class="lobby-save-note">Outfits are purchased with coins earned by fishing. No real-money purchases.</p>
+    </section>
+
+    <section class="lobby-sheet lobby-sheet-wide" id="lobby-customize-panel" style="display: none;">
+      <div class="lobby-sheet-head">
+        <div><span class="lobby-kicker">CHARACTER STUDIO</span><h2>Character Customization</h2><p>Your look updates live and saves automatically.</p></div>
+        <div class="lobby-sheet-actions">
+          <button class="lobby-back" id="lobby-randomize">🎲 Randomize</button>
+          <button class="lobby-back" data-lobby-back>← Back</button>
+        </div>
+      </div>
+      <div class="customizer-layout">
+        <div class="cc-preview-card">
+          <div class="cc-preview-stage">
+            <div class="cc-avatar" id="cc-avatar" data-face="oval" data-hair="short" data-beard="none" data-pack="expedition">
+              <div class="cc-backpack" aria-hidden="true"></div>
+              <div class="cc-hair" aria-hidden="true"></div>
+              <div class="cc-hat"><span class="cc-band"></span></div>
+              <div class="cc-head">
+                <span class="cc-ear left"></span><span class="cc-ear right"></span>
+                <span class="cc-eye left"></span><span class="cc-eye right"></span>
+                <span class="cc-brow left"></span><span class="cc-brow right"></span>
+                <span class="cc-nose"></span><span class="cc-mouth"></span>
+              </div>
+              <div class="cc-torso"></div>
+              <div class="cc-legs"></div>
+            </div>
+          </div>
+          <strong>Your Angler</strong>
+          <span>Live outfit preview</span>
+        </div>
+        <div class="cc-controls" id="cc-controls"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="crosshair"></div>
+
+  <!-- Floating Interaction Prompt Pill -->
+  <div class="interaction-prompt-container" id="interaction-prompt" style="display: none;">
+    <div class="prompt-pill">
+      <span class="prompt-key">E</span>
+      <span class="prompt-label" id="prompt-action-text">Interact</span>
+    </div>
+  </div>
+
+  <!-- Fish Bite Alert -->
+  <div class="bite-alert" id="bite-alert" style="display: none;">
+    <span>⚡ FISH BITE! Strike with [E]!</span>
+  </div>
+
+  <!-- Reeling / Tension Minigame HUD -->
+  <div class="fishing-minigame-card" id="fishing-minigame" style="display: none;">
+    <div class="minigame-title">
+      <span>Reel Tension</span>
+      <span id="minigame-percent">0%</span>
+    </div>
+    <div class="tension-bar-wrapper">
+      <div class="tension-sweet-spot"></div>
+      <div class="tension-needle" id="tension-needle" style="left: 50%;"></div>
+    </div>
+    <div class="progress-bar-wrapper">
+      <div class="progress-bar-fill" id="progress-bar-fill" style="width: 0%;"></div>
+    </div>
+    <p class="minigame-hints">
+      Hold <strong>[E]</strong> or <strong>Left Click</strong> to reel in. Keep the needle inside the green zone!
+    </p>
+  </div>
+
+  <!-- Catch Success Modal Window -->
+  <div class="catch-modal" id="catch-modal" style="display: none;">
+    <div class="catch-icon" id="catch-icon">🐟</div>
+    <h2 class="catch-name" id="catch-name">Atlantic Mackerel</h2>
+    <span class="catch-rarity-badge rarity-Common" id="catch-rarity">Common</span>
+    <div class="catch-stats-grid">
+      <div>
+        <span class="catch-stat-label">Weight</span>
+        <span class="catch-stat-val" id="catch-weight">1.25 kg</span>
+      </div>
+      <div>
+        <span class="catch-stat-label">Est. Value</span>
+        <span class="catch-stat-val" id="catch-value">14 Coins</span>
+      </div>
+    </div>
+    <button class="btn-collect" id="btn-collect-fish">Store in Bucket (E)</button>
+  </div>
+
+  <!-- Inventory & Encyclopedia Modal Window -->
+  <div class="inventory-modal" id="inventory-modal" style="display: none;">
+    <div class="inv-header">
+      <div class="inv-title-group">
+        <span style="font-size: 1.4rem;">🎒</span>
+        <h2 class="inv-title">Angler's Satchel & Fish Bucket</h2>
+      </div>
+      <button class="btn-close-modal" id="btn-close-inv">&times;</button>
+    </div>
+    <div class="inv-tabs">
+      <button class="inv-tab-btn active" id="tab-btn-bucket">Fish Bucket (<span id="inv-tab-count">0/10</span>)</button>
+      <button class="inv-tab-btn" id="tab-btn-encyclopedia">Encyclopedia (<span id="inv-tab-encyclopedia">0/6</span>)</button>
+    </div>
+    <div class="inv-content" id="inv-bucket-view">
+      <div class="inv-summary-bar">
+        <span class="inv-summary-item">Total Weight: <span class="inv-summary-val" id="inv-total-weight">0.00 kg</span></span>
+        <span class="inv-summary-item">Total Market Value: <span class="inv-summary-val" id="inv-total-value">0 Coins</span></span>
+      </div>
+      <div class="fish-grid" id="fish-bucket-grid"></div>
+    </div>
+    <div class="inv-content" id="inv-encyclopedia-view" style="display: none;">
+      <div class="inv-summary-bar">
+        <span class="inv-summary-item">Discovered Species: <span class="inv-summary-val" id="encyclopedia-summary">0 / 6</span></span>
+      </div>
+      <div class="fish-grid" id="fish-encyclopedia-grid"></div>
+    </div>
+  </div>
+
+  <!-- Shop & Merchant Modal Window -->
+  <div class="shop-modal" id="shop-modal" style="display: none;">
+    <div class="inv-header">
+      <div class="inv-title-group">
+        <span style="font-size: 1.4rem;">🏪</span>
+        <h2 class="inv-title" id="shop-title">Driftwood Isle Market</h2>
+      </div>
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div class="coins-badge">
+          <span>💰</span>
+          <span id="shop-coins-val">50 Coins</span>
+        </div>
+        <button class="btn-close-modal" id="btn-close-shop">&times;</button>
+      </div>
+    </div>
+    <div class="inv-tabs">
+      <button class="inv-tab-btn active" id="tab-btn-shop-sell">Sell Fish</button>
+      <button class="inv-tab-btn" id="tab-btn-shop-rods">Fishing Rods</button>
+      <button class="inv-tab-btn" id="tab-btn-shop-buckets">Bucket Upgrades</button>
+      <button class="inv-tab-btn" id="tab-btn-shop-boats">Boat Dealership</button>
+      <button class="inv-tab-btn" id="tab-btn-shop-pirate">☠ Pirate Dock</button>
+      <button class="inv-tab-btn" id="tab-btn-shop-upgrades">Ship Upgrades</button>
+    </div>
+    <div class="inv-content" id="shop-sell-view">
+      <div class="inv-summary-bar">
+        <span class="inv-summary-item">Bucket: <span class="inv-summary-val" id="shop-bucket-count">0 / 10</span></span>
+        <button class="btn-sell-all" id="btn-sell-all-fish">Sell All Fish</button>
+      </div>
+      <div class="fish-grid" id="shop-sell-grid"></div>
+    </div>
+    <div class="inv-content" id="shop-rods-view" style="display: none;">
+      <div class="shop-grid" id="shop-rods-grid"></div>
+    </div>
+    <div class="inv-content" id="shop-buckets-view" style="display: none;">
+      <div class="shop-grid" id="shop-buckets-grid"></div>
+    </div>
+    <div class="inv-content" id="shop-boats-view" style="display: none;">
+      <div class="shop-grid" id="shop-boats-grid"></div>
+    </div>
+    <div class="inv-content" id="shop-pirate-view" style="display: none;">
+      <div class="inv-summary-bar">
+        <span class="inv-summary-item">☠ Quartermaster Sable's corsair fleet · entry offers from <strong>50 coins</strong></span>
+        <div class="coins-badge"><span>💰</span><span id="pirate-coins">0 Coins</span></div>
+      </div>
+      <div class="shop-grid" id="shop-pirate-grid"></div>
+    </div>
+    <div class="inv-content" id="shop-upgrades-view" style="display: none;">
+      <div class="inv-summary-bar">
+        <span class="inv-summary-item">Upgrade engines, hulls, storage, and fishing decks.<br><strong>Ship upgrades require owning the vessel first.</strong></span>
+        <div class="coins-badge"><span>💰</span><span id="upgrade-coins">0 Coins</span></div>
+      </div>
+      <div class="shop-grid" id="shop-upgrades-grid"></div>
+    </div>
+  </div>
+
+  <!-- Dialogue Modal Window -->
+  <div class="dialogue-box" id="dialogue-box" style="display: none;">
+    <div class="dialogue-header">
+      <div class="speaker-avatar">⚓</div>
+      <div class="speaker-meta">
+        <h3 class="speaker-name" id="dialogue-speaker">Captain Finn</h3>
+        <span class="speaker-title" id="dialogue-title">Harbor Master</span>
+      </div>
+    </div>
+    <div class="dialogue-body">
+      <p class="dialogue-text" id="dialogue-text"></p>
+    </div>
+    <div class="dialogue-choices" id="dialogue-choices"></div>
+    <div class="dialogue-footer">
+      <span class="dialogue-hint" id="dialogue-hint">Press <kbd class="kbd">E</kbd> or Click to continue</span>
+    </div>
+  </div>
+
+  <!-- Story Journal Modal -->
+  <div class="story-modal" id="story-modal" style="display: none;">
+    <div class="story-shell">
+      <div class="inv-header">
+        <div class="inv-title-group">
+          <span style="font-size: 1.4rem;">📖</span>
+          <h2 class="inv-title">The Story Book</h2>
+        </div>
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <span class="index-progress-badge" id="story-progress">0 / 10 chapters</span>
+          <button class="btn-close-modal" id="btn-close-story">&times;</button>
+        </div>
+      </div>
+      <div class="story-body">
+        <nav class="story-chapter-list" id="story-chapter-list"></nav>
+        <article class="story-detail" id="story-detail"></article>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= OCEAN ODYSSEY EXPANSION UI ================= -->
+
+  <!-- Mount Stable Modal -->
+  <div class="ocean-modal" id="mount-modal" style="display: none;">
+    <div class="inv-header">
+      <div class="inv-title-group">
+        <span style="font-size: 1.4rem;">🐎</span>
+        <h2 class="inv-title">Mount Stable</h2>
+      </div>
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div class="coins-badge"><span>💰</span><span id="mount-coins">50 Coins</span></div>
+        <button class="btn-close-modal" id="btn-close-mount">&times;</button>
+      </div>
+    </div>
+    <div class="inv-content">
+      <div class="inv-summary-bar">
+        <span class="inv-summary-item">Riding: <span class="inv-summary-val" id="mount-active-label">None</span></span>
+        <span class="inv-summary-item">Summon with <kbd class="kbd">M</kbd> &middot; Dismount with <kbd class="kbd">Q</kbd></span>
+      </div>
+      <div class="shop-grid" id="mount-grid"></div>
+    </div>
+  </div>
+
+  <!-- Fast Travel Map Modal -->
+  <div class="ocean-modal" id="travel-modal" style="display: none;">
+    <div class="inv-header">
+      <div class="inv-title-group">
+        <span style="font-size: 1.4rem;">🗺️</span>
+        <h2 class="inv-title">Fast Travel Network</h2>
+      </div>
+      <button class="btn-close-modal" id="btn-close-travel">&times;</button>
+    </div>
+    <div class="inv-content">
+      <p class="modal-hint" id="travel-hint">Gates unlock when you discover their region or walk up to them. Teleporting has a short cooldown.</p>
+      <div class="travel-grid" id="travel-grid"></div>
+    </div>
+  </div>
+
+  <!-- Fish Index 2.0 Modal -->
+  <div class="ocean-modal ocean-modal-wide" id="fish-index-modal" style="display: none;">
+    <div class="inv-header">
+      <div class="inv-title-group">
+        <span style="font-size: 1.4rem;">📖</span>
+        <h2 class="inv-title">Fish Index</h2>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span class="index-progress-badge" id="index-progress-badge">0 / 0</span>
+        <button class="btn-close-modal" id="btn-close-index">&times;</button>
+      </div>
+    </div>
+    <div class="inv-content">
+      <div class="index-summary" id="index-summary"></div>
+      <div class="modal-toolbar">
+        <input class="index-search" id="index-search" type="text" placeholder="Search species, category, habitat…" />
+        <select class="pill-select" id="index-category"><option value="all">All categories</option></select>
+        <select class="pill-select" id="index-habitat"><option value="all">All habitats</option></select>
+        <select class="pill-select" id="index-rarity"><option value="all">All rarities</option></select>
+        <select class="pill-select" id="index-sort">
+          <option value="rarity">Sort: Rarity</option>
+          <option value="name">Sort: Name</option>
+          <option value="weight">Sort: Record weight</option>
+          <option value="caught">Sort: Times caught</option>
+          <option value="value">Sort: Base value</option>
+        </select>
+        <label class="index-toggle"><input type="checkbox" id="index-discovered-only" /> Discovered only</label>
+      </div>
+      <div class="fish-grid" id="fish-index-grid"></div>
+    </div>
+  </div>
+
+  <div class="ocean-modal expansion-modal" id="expansion-modal" style="display: none;">
+    <div class="expansion-shell">
+      <aside class="expansion-nav" id="expansion-nav"></aside>
+      <main class="expansion-main">
+        <header class="expansion-head">
+          <div>
+            <span class="expansion-kicker" id="expansion-kicker">HARBOR SERVICES</span>
+            <h2 id="expansion-title">Backpack & Cargo</h2>
+            <p id="expansion-subtitle">Manage every item, weight and transfer.</p>
+          </div>
+          <button class="btn-close-modal" id="btn-close-expansion">&times;</button>
+        </header>
+        <div class="expansion-content" id="expansion-content"></div>
+      </main>
+    </div>
+  </div>
+
+  <div class="boss-hud" id="boss-hud" style="display: none;">
+    <div class="boss-hud-head">
+      <div>
+        <span class="boss-kicker" id="boss-title">WORLD BOSS</span>
+        <h3 id="boss-name">The Ancient Leviathan</h3>
+      </div>
+      <span class="boss-phase" id="boss-phase">Phase 1 · Roaming Encounter</span>
+    </div>
+    <div class="boss-bar-row">
+      <span>Boss</span>
+      <div class="boss-bar"><div class="boss-bar-fill" id="boss-health-fill" style="width:100%"></div></div>
+      <strong id="boss-health-text">100%</strong>
+    </div>
+    <div class="boss-bar-row ship">
+      <span>Ship</span>
+      <div class="boss-bar"><div class="ship-bar-fill" id="ship-health-fill" style="width:100%"></div></div>
+      <strong id="ship-health-text">100%</strong>
+    </div>
+    <div class="boss-combat-meta">
+      <span id="boss-ammo">⚫ Standard · 30</span>
+      <span id="boss-reload">Ready</span>
+      <span id="boss-mode">Assisted</span>
+      <span id="boss-duration">0.0s</span>
+    </div>
+    <div class="boss-actions">
+      <button class="btn-combat primary" id="btn-cannon-fire">Fire (Space)</button>
+      <button class="btn-combat" id="btn-cannon-mode">Assisted Aim (X)</button>
+      <button class="btn-combat" id="btn-cannon-left">◀ Aim</button>
+      <button class="btn-combat" id="btn-cannon-right">Aim ▶</button>
+      <button class="btn-combat danger" id="btn-boss-retreat">Retreat</button>
+    </div>
+    <p class="boss-hint" id="boss-hint">A/D steer · ←/→ aim · Space fire · X toggle assisted · C leave combat view</p>
+  </div>
+
+  <div class="survival-hud" id="survival-hud">
+    <div class="survival-row"><span>❤️</span><div class="survival-track"><div class="survival-fill health" id="survival-health-fill" style="width:100%"></div></div></div>
+    <div class="survival-row"><span>⚡</span><div class="survival-track"><div class="survival-fill stamina" id="survival-stamina-fill" style="width:100%"></div></div></div>
+    <div class="survival-meta"><span id="survival-carry">0 / 40 kg</span><span id="survival-buffs">No buffs</span></div>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <div class="ui-layer">
+    <!-- Top Left: Title, Phase & Objectives -->
+    <div class="top-left-stack">
+      <header class="card header-card">
+        <div class="header-top">
+          <h1 class="header-title">Fishing Adventure</h1>
+          <span class="phase-badge">Ocean Odyssey — Expansion</span>
+        </div>
+        <p class="header-desc">
+          40 vessels plus 8 expedition hulls, detailed NPC faces and backpacks, 76 rods and 43 fishing tools, the Aurelia Heights skyscraper city, 12 crops across 14 farm plots, 21 tree and ore nodes with 10 gathering tools, 8 rideable mounts, a 15-gate fast-travel network plus city ferry, 140 fish across 14 categories, free island huts, gems, a story book and full character customization — all persisted.
+        </p>
+      </header>
+
+      <section class="card objectives-card" id="objectives-card">
+        <div class="objectives-head">
+          <div>
+            <div class="objectives-kicker">Objectives</div>
+            <div class="objectives-chapter" id="objectives-chapter">The First Cast</div>
+          </div>
+          <div class="objectives-badges">
+            <span class="objectives-badge" title="Story chapters">📖 <span id="objectives-story-count">0/10</span></span>
+            <span class="objectives-badge gems" title="Gems">💎 <span id="objectives-gem-count">0</span></span>
+          </div>
+        </div>
+        <div class="objectives-list" id="objectives-list">
+          <div class="objective-meta">Cast your line to begin the story.</div>
+        </div>
+        <div class="objectives-footer">
+          <button class="objectives-open" id="objectives-open-story">Open Story Book <kbd class="kbd">L</kbd></button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Top Right: Diagnostics -->
+    <div class="card diag-card">
+      <div class="diag-title">Engine Diagnostics</div>
+      <div class="diag-row">
+        <span class="diag-label">FPS:</span>
+        <span class="diag-val highlight" id="diag-fps">60</span>
+      </div>
+      <div class="diag-row">
+        <span class="diag-label">Angler Level:</span>
+        <span class="diag-val highlight" id="diag-level">Lvl 1 (0 XP)</span>
+      </div>
+      <div class="diag-row">
+        <span class="diag-label">Zone:</span>
+        <span class="diag-val highlight" id="diag-zone">Emerald Cove</span>
+      </div>
+      <div class="diag-row">
+        <span class="diag-label">Player Coins:</span>
+        <span class="diag-val highlight" id="diag-coins">💰 1,000</span>
+      </div>
+      <div class="diag-row">
+        <span class="diag-label">Gems:</span>
+        <span class="diag-val highlight" id="diag-gems">💎 0</span>
+      </div>
+      <div class="diag-row">
+        <span class="diag-label">Fish Bucket:</span>
+        <span class="diag-val highlight" id="diag-bucket">0 / 10</span>
+      </div>
+      <div class="diag-row">
+        <span class="diag-label">Fish Index:</span>
+        <span class="diag-val highlight" id="diag-index">0 / 0 (0%)</span>
+      </div>
+      <div class="diag-row">
+        <span class="diag-label">Time:</span>
+        <span class="diag-val highlight" id="diag-clock">07:30 (dawn)</span>
+      </div>
+      <div class="diag-row">
+        <span class="diag-label">Mount:</span>
+        <span class="diag-val highlight" id="diag-mount">None</span>
+      </div>
+      <div class="diag-row">
+        <span class="diag-label">Travel Gates:</span>
+        <span class="diag-val highlight" id="diag-travel">1 / 15</span>
+      </div>
+      <div class="diag-row">
+        <span class="diag-label">Rod Equipped:</span>
+        <span class="diag-val highlight" id="diag-rod">NO (F to Equip)</span>
+      </div>
+      <div class="diag-row">
+        <span class="diag-label">Fishing State:</span>
+        <span class="diag-val highlight" id="diag-fishing-state">IDLE</span>
+      </div>
+      <div class="diag-row">
+        <span class="diag-label">Active Prompt:</span>
+        <span class="diag-val highlight" id="diag-prompt">None</span>
+      </div>
+    </div>
+
+    <!-- Bottom Left: Controls -->
+    <div class="card controls-card">
+      <div class="controls-title">Controls</div>
+      <div class="keys-grid">
+        <div class="key-item">
+          <span class="kbd">W</span><span class="kbd">A</span><span class="kbd">S</span><span class="kbd">D</span>
+          <span class="key-desc">Move / Steer</span>
+        </div>
+        <div class="key-item">
+          <span class="kbd">F</span>
+          <span class="key-desc">Equip/Holster Rod</span>
+        </div>
+        <div class="key-item">
+          <span class="kbd">E</span>
+          <span class="key-desc">Interact / Board / Fish</span>
+        </div>
+        <div class="key-item">
+          <span class="kbd">B</span>
+          <span class="key-desc">Open Bucket & Satchel</span>
+        </div>
+        <div class="key-item">
+          <span class="kbd">Space</span>
+          <span class="key-desc">Jump / Reel</span>
+        </div>
+        <div class="key-item">
+          <span class="kbd">M</span>
+          <span class="key-desc">Mount Stable / Summon</span>
+        </div>
+        <div class="key-item">
+          <span class="kbd">T</span>
+          <span class="key-desc">Fast Travel Map</span>
+        </div>
+        <div class="key-item">
+          <span class="kbd">J</span>
+          <span class="key-desc">Fish Index</span>
+        </div>
+        <div class="key-item">
+          <span class="kbd">L</span>
+          <span class="key-desc">Story Book</span>
+        </div>
+        <div class="key-item">
+          <span class="kbd">Q</span>
+          <span class="key-desc">Dismount Boat / Mount</span>
+        </div>
+        <div class="key-item">
+          <span class="kbd">R</span>
+          <span class="key-desc">Restart Scene</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Right: Quick Action Buttons -->
+    <div class="prompt-overlay">
+      <button class="btn-save" id="btn-save-click" title="Save game to local persistence">
+        💾 Save Game
+      </button>
+      <button class="btn-load" id="btn-load-click" title="Load game from local persistence">
+        📂 Load Game
+      </button>
+      <button class="btn-sound" id="btn-sound-click" title="Toggle audio mute">
+        🔊 Sound: ON
+      </button>
+      <button class="btn-save" id="btn-main-menu" title="Return to the start lobby">
+        ☰ Main Menu
+      </button>
+      <button class="btn-restart" id="btn-restart-click" title="Reset player position and state">
+        Restart (R)
+      </button>
+    </div>
+
+    <!-- Mount Stamina HUD -->
+    <div class="mount-hud" id="mount-hud" style="display: none;">
+      <div class="mount-hud-top">
+        <span class="mount-hud-name" id="mount-hud-name">Island Horse</span>
+        <span class="mount-hud-level" id="mount-hud-level">Lv 1</span>
+      </div>
+      <div class="stamina-track"><div class="stamina-fill" id="mount-stamina-fill" style="width: 100%;"></div></div>
+      <span class="mount-hud-hint">Shift to sprint &middot; Q to dismount</span>
+    </div>
+
+    <!-- Quick Access Bar -->
+    <div class="quick-bar" id="quick-bar">
+      <button class="quick-btn" id="quick-btn-travel" title="Fast travel network (T)">🗺️<span>Travel</span></button>
+      <button class="quick-btn" id="quick-btn-story" title="Story book (L)">📖<span>Story</span></button>
+      <button class="quick-btn" id="quick-btn-index" title="Fish Index (J)">📖<span>Index</span></button>
+      <button class="quick-btn" id="quick-btn-mount" title="Mount stable (M)">🐎<span>Mounts</span></button>
+      <button class="quick-btn" id="quick-btn-shipyard" title="Boat dealership and ship upgrades">⛵<span>Shipyard</span></button>
+      <button class="quick-btn" id="quick-btn-backpack" title="Backpack and cargo (K)">🎒<span>Pack</span></button>
+      <button class="quick-btn" id="quick-btn-rods" title="Rod collection">🎣<span>Rods</span></button>
+      <button class="quick-btn" id="quick-btn-tools" title="Nets, traps and fishing tools">🧰<span>Tools</span></button>
+      <button class="quick-btn" id="quick-btn-farming" title="Rooftop farms, seeds and harvests">🌱<span>Farm</span></button>
+      <button class="quick-btn" id="quick-btn-gathering" title="Chop trees and mine ore seams">⛏️<span>Gather</span></button>
+      <button class="quick-btn" id="quick-btn-city-boats" title="Aurelia Heights Sky Marina fleet">🛥️<span>Marina</span></button>
+      <button class="quick-btn" id="quick-btn-frontier" title="Frontier archipelago expeditions">🧭<span>Frontier</span></button>
+      <button class="quick-btn" id="quick-btn-housing" title="Housing (H)">🏠<span>Home</span></button>
+      <button class="quick-btn" id="quick-btn-wardrobe" title="Wardrobe and gacha (V)">✨<span>Style</span></button>
+      <button class="quick-btn" id="quick-btn-radar" title="Ocean Radar (O)">📡<span>Radar</span></button>
+      <button class="quick-btn" id="quick-btn-crew" title="Ship crew">🧑‍✈️<span>Crew</span></button>
+      <div class="quick-divider"></div>
+      <label class="quick-select-label">Rod mode
+        <select class="pill-select" id="select-difficulty">
+          <option value="casual">Casual</option>
+          <option value="standard" selected>Standard</option>
+          <option value="expert">Expert</option>
+        </select>
+      </label>
+      <label class="quick-select-label">Bait
+        <select class="pill-select" id="select-bait"></select>
+      </label>
+    </div>
+  </div>
+
+  <script type="module">
+    import { Game } from './src/core/Game.js';
+    import { initExpansionUI } from './src/ui/ExpansionUI.js';
+    import { initObjectivesHUD } from './src/ui/ObjectivesHUD.js';
+    import { initStoryJournalUI } from './src/ui/StoryJournalUI.js';
+    import { CharacterPalettes } from './src/customization/CharacterCustomization.js';
+
+    const container = document.getElementById('canvas-container');
+    const game = new Game(container);
+    window.game = game;
+    game.isLobbyOpen = true;
+
+    // Start engine loop
+    game.start();
+
+    // Hook restart button
+    const restartBtn = document.getElementById('btn-restart-click');
+    if (restartBtn) {
+      restartBtn.addEventListener('click', () => {
+        game.restart();
+      });
+    }
+
+    // Hook Interaction UI
+    const promptEl = document.getElementById('interaction-prompt');
+    const promptTextEl = document.getElementById('prompt-action-text');
+    const dialogueBox = document.getElementById('dialogue-box');
+    const diagSpeaker = document.getElementById('dialogue-speaker');
+    const diagTitle = document.getElementById('dialogue-title');
+    const diagText = document.getElementById('dialogue-text');
+    const diagChoices = document.getElementById('dialogue-choices');
+    const diagHint = document.getElementById('dialogue-hint');
+
+    game.interactionManager.onPromptChange = (interactable) => {
+      if (interactable) {
+        promptTextEl.textContent = interactable.getPromptText();
+        promptEl.style.display = 'flex';
+      } else {
+        promptEl.style.display = 'none';
+      }
+    };
+
+    game.interactionManager.onDialogueChange = (dialogueState) => {
+      if (dialogueState) {
+        dialogueBox.style.display = 'block';
+        diagSpeaker.textContent = dialogueState.speaker;
+        diagTitle.textContent = dialogueState.title || '';
+        diagText.textContent = dialogueState.lines[dialogueState.currentIndex] || '';
+
+        const choices = dialogueState.choices || [];
+        const atEnd = dialogueState.currentIndex >= dialogueState.lines.length - 1;
+        if (diagChoices) {
+          if (choices.length > 0 && atEnd) {
+            diagChoices.innerHTML = choices.map((choice, index) =>
+              `<button class="dialogue-choice" data-choice-index="${index}">${choice.label}</button>`
+            ).join('');
+            diagChoices.style.display = 'flex';
+          } else {
+            diagChoices.innerHTML = '';
+            diagChoices.style.display = 'none';
+          }
+        }
+        if (diagHint) {
+          diagHint.textContent = choices.length > 0 && atEnd
+            ? 'Choose an option to continue'
+            : 'Press E or Click to continue';
+        }
+      } else {
+        dialogueBox.style.display = 'none';
+        if (diagChoices) {
+          diagChoices.innerHTML = '';
+          diagChoices.style.display = 'none';
+        }
+      }
+    };
+
+    if (diagChoices) {
+      diagChoices.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const button = event.target.closest('[data-choice-index]');
+        if (!button) return;
+        game.chooseDialogue(Number(button.dataset.choiceIndex));
+      });
+    }
+
+    dialogueBox.addEventListener('click', () => {
+      game.interactionManager.advanceDialogue();
+    });
+
+    // Hook Fishing UI
+    const biteAlert = document.getElementById('bite-alert');
+    const minigameCard = document.getElementById('fishing-minigame');
+    const tensionNeedle = document.getElementById('tension-needle');
+    const progressFill = document.getElementById('progress-bar-fill');
+    const minigamePercent = document.getElementById('minigame-percent');
+    const catchModal = document.getElementById('catch-modal');
+    const catchIcon = document.getElementById('catch-icon');
+    const catchName = document.getElementById('catch-name');
+    const catchRarity = document.getElementById('catch-rarity');
+    const catchWeight = document.getElementById('catch-weight');
+    const catchValue = document.getElementById('catch-value');
+    const btnCollect = document.getElementById('btn-collect-fish');
+
+    game.fishingSystem.onBite = () => {
+      biteAlert.style.display = 'flex';
+    };
+
+    game.fishingSystem.onStateChange = (state, data) => {
+      if (state !== 'BITING') {
+        biteAlert.style.display = 'none';
+      }
+
+      if (state === 'REELING') {
+        minigameCard.style.display = 'block';
+      } else {
+        minigameCard.style.display = 'none';
+      }
+
+      if (state === 'IDLE' && catchModal.style.display !== 'none') {
+        catchModal.style.display = 'none';
+      }
+    };
+
+    const gameCatchHandler = game.fishingSystem.onCatchSuccess;
+    game.fishingSystem.onCatchSuccess = (fish) => {
+      if (typeof gameCatchHandler === 'function') gameCatchHandler(fish);
+      minigameCard.style.display = 'none';
+      biteAlert.style.display = 'none';
+      catchIcon.textContent = fish.icon;
+      catchName.textContent = fish.name;
+      catchRarity.textContent = fish.rarity;
+      catchRarity.className = `catch-rarity-badge rarity-${fish.rarity}`;
+      catchWeight.textContent = `${fish.weight} kg`;
+      catchValue.textContent = `${fish.value} Coins`;
+      catchModal.style.display = 'block';
+    };
+
+    game.fishingSystem.onCatchFailed = (reason) => {
+      minigameCard.style.display = 'none';
+      biteAlert.style.display = 'none';
+      alert(`Fishing Result: ${reason}`);
+      game.fishingSystem.cancelFishing();
+    };
+
+    btnCollect.addEventListener('click', () => {
+      catchModal.style.display = 'none';
+      game.fishingSystem.cancelFishing();
+    });
+
+    // Hook Inventory UI
+    const invModal = document.getElementById('inventory-modal');
+    const btnCloseInv = document.getElementById('btn-close-inv');
+    const tabBtnBucket = document.getElementById('tab-btn-bucket');
+    const tabBtnEncy = document.getElementById('tab-btn-encyclopedia');
+    const bucketView = document.getElementById('inv-bucket-view');
+    const encyView = document.getElementById('inv-encyclopedia-view');
+    const bucketGrid = document.getElementById('fish-bucket-grid');
+    const encyGrid = document.getElementById('fish-encyclopedia-grid');
+    const invTabCount = document.getElementById('inv-tab-count');
+    const invTabEncy = document.getElementById('inv-tab-encyclopedia');
+    const invTotalWeight = document.getElementById('inv-total-weight');
+    const invTotalValue = document.getElementById('inv-total-value');
+    const encySummary = document.getElementById('encyclopedia-summary');
+
+    function renderInventoryUI() {
+      const inv = game.player.inventory;
+      if (!inv) return;
+
+      const state = inv.getState();
+      invTabCount.textContent = `${state.count}/${state.capacity}`;
+      invTabEncy.textContent = `${state.discoveredCount}/${state.totalSpecies}`;
+      invTotalWeight.textContent = `${state.totalWeight} kg`;
+      invTotalValue.textContent = `${state.totalValue} Coins`;
+      encySummary.textContent = `${state.discoveredCount} / ${state.totalSpecies}`;
+
+      bucketGrid.innerHTML = '';
+      if (state.bucket.length === 0) {
+        bucketGrid.innerHTML = `
+          <div class="inv-empty-state" style="grid-column: 1 / -1;">
+            <div class="inv-empty-icon">🪣</div>
+            <p>Your fish bucket is empty!</p>
+            <p style="font-size: 0.8rem; margin-top: 4px;">Equip your rod (F) and cast at the pier or coast.</p>
+          </div>
+        `;
+      } else {
+        for (const fish of state.bucket) {
+          const card = document.createElement('div');
+          card.className = 'fish-card';
+          card.innerHTML = `
+            <div class="fish-card-icon">${fish.icon}</div>
+            <div class="fish-card-name">${fish.name}</div>
+            <span class="catch-rarity-badge rarity-${fish.rarity}">${fish.rarity}</span>
+            <div class="fish-card-meta">${fish.weight} kg</div>
+            <div class="fish-card-price">${fish.value} Coins</div>
+          `;
+          bucketGrid.appendChild(card);
+        }
+      }
+
+      encyGrid.innerHTML = '';
+      const encyData = inv.getEncyclopediaData();
+      for (const sp of encyData) {
+        const card = document.createElement('div');
+        card.className = sp.discovered ? 'fish-card' : 'fish-card encyclopedia-card locked';
+        card.innerHTML = `
+          <div class="fish-card-icon">${sp.icon}</div>
+          <div class="fish-card-name">${sp.name}</div>
+          <span class="catch-rarity-badge rarity-${sp.rarity}">${sp.rarity}</span>
+          <div class="fish-card-meta">${sp.discovered ? `Best: ${sp.maxWeight} kg (${sp.timesCaught} caught)` : 'Habitat: ' + sp.habitat.join(', ')}</div>
+          <div class="fish-card-price">${sp.discovered ? `Base: ${sp.basePrice} Coins` : '???'}</div>
+        `;
+        encyGrid.appendChild(card);
+      }
+    }
+
+    game.onInventoryToggle = (isOpen) => {
+      if (isOpen) {
+        renderInventoryUI();
+        invModal.style.display = 'flex';
+      } else {
+        invModal.style.display = 'none';
+      }
+    };
+
+    btnCloseInv.addEventListener('click', () => {
+      game.toggleInventory(false);
+    });
+
+    tabBtnBucket.addEventListener('click', () => {
+      tabBtnBucket.classList.add('active');
+      tabBtnEncy.classList.remove('active');
+      bucketView.style.display = 'block';
+      encyView.style.display = 'none';
+    });
+
+    tabBtnEncy.addEventListener('click', () => {
+      tabBtnEncy.classList.add('active');
+      tabBtnBucket.classList.remove('active');
+      encyView.style.display = 'block';
+      bucketView.style.display = 'none';
+    });
+
+    // Hook Shop & Merchant UI
+    const shopModal = document.getElementById('shop-modal');
+    const btnCloseShop = document.getElementById('btn-close-shop');
+    const shopCoinsVal = document.getElementById('shop-coins-val');
+    const tabBtnShopSell = document.getElementById('tab-btn-shop-sell');
+    const tabBtnShopRods = document.getElementById('tab-btn-shop-rods');
+    const tabBtnShopBuckets = document.getElementById('tab-btn-shop-buckets');
+    const shopSellView = document.getElementById('shop-sell-view');
+    const shopRodsView = document.getElementById('shop-rods-view');
+    const shopBucketsView = document.getElementById('shop-buckets-view');
+    const shopSellGrid = document.getElementById('shop-sell-grid');
+    const shopRodsGrid = document.getElementById('shop-rods-grid');
+    const shopBucketsGrid = document.getElementById('shop-buckets-grid');
+    const shopBucketCount = document.getElementById('shop-bucket-count');
+    const btnSellAll = document.getElementById('btn-sell-all-fish');
+
+    function renderShopUI() {
+      const eco = game.player.economy;
+      const inv = game.player.inventory;
+      const sm = game.shopManager;
+      if (!eco || !inv || !sm) return;
+
+      shopCoinsVal.textContent = `${eco.getCoins()} Coins`;
+      shopBucketCount.textContent = `${inv.getCount()} / ${inv.getCapacity()}`;
+
+      // 1. Sell Tab Grid
+      shopSellGrid.innerHTML = '';
+      if (inv.getCount() === 0) {
+        shopSellGrid.innerHTML = `
+          <div class="inv-empty-state" style="grid-column: 1 / -1;">
+            <p>No fish in bucket to sell!</p>
+          </div>
+        `;
+      } else {
+        for (const fish of inv.bucket) {
+          const card = document.createElement('div');
+          card.className = 'shop-card';
+          card.innerHTML = `
+            <div class="fish-card-icon">${fish.icon}</div>
+            <div class="fish-card-name">${fish.name}</div>
+            <div class="fish-card-meta">${fish.weight} kg</div>
+            <div style="font-weight: 700; color: #fbbf24; margin-bottom: 10px;">+${fish.value} Coins</div>
+            <button class="btn-shop-action btn-sell-fish" data-id="${fish.instanceId}">Sell</button>
+          `;
+          card.querySelector('.btn-sell-fish').addEventListener('click', () => {
+            eco.sellFish(inv, fish.instanceId);
+            renderShopUI();
+          });
+          shopSellGrid.appendChild(card);
+        }
+      }
+
+      // 2. Rod Upgrades
+      shopRodsGrid.innerHTML = '';
+      const catalogue = sm.getShopCatalogue(game.player);
+      for (const rod of catalogue.rods) {
+        const card = document.createElement('div');
+        card.className = rod.isOwned ? 'shop-card owned' : 'shop-card';
+        card.innerHTML = `
+          <div class="shop-card-icon">${rod.icon}</div>
+          <div class="shop-card-name">${rod.name}</div>
+          <p class="shop-card-desc">Reel Speed: ${rod.reelSpeed}x | Luck: +${Math.round(rod.luckBonus * 100)}%</p>
+          <div style="font-weight: 700; color: #fbbf24; margin-bottom: 10px;">${rod.isOwned ? 'OWNED' : rod.cost + ' Coins'}</div>
+          <button class="btn-shop-action btn-buy" ${rod.isOwned || !eco.canAfford(rod.cost) ? 'disabled' : ''}>
+            ${rod.isOwned ? 'Equipped' : 'Buy Upgrade'}
+          </button>
+        `;
+        const btn = card.querySelector('.btn-buy');
+        if (!rod.isOwned) {
+          btn.addEventListener('click', () => {
+            sm.purchaseRodUpgrade(game.player, eco, rod.id);
+            renderShopUI();
+          });
+        }
+        shopRodsGrid.appendChild(card);
+      }
+
+      // 3. Bucket Upgrades
+      shopBucketsGrid.innerHTML = '';
+      for (const bucket of catalogue.buckets) {
+        const card = document.createElement('div');
+        card.className = bucket.isOwned ? 'shop-card owned' : 'shop-card';
+        card.innerHTML = `
+          <div class="shop-card-icon">${bucket.icon}</div>
+          <div class="shop-card-name">${bucket.name}</div>
+          <p class="shop-card-desc">Capacity: ${bucket.capacity} Fish</p>
+          <div style="font-weight: 700; color: #fbbf24; margin-bottom: 10px;">${bucket.isOwned ? 'OWNED' : bucket.cost + ' Coins'}</div>
+          <button class="btn-shop-action btn-buy" ${bucket.isOwned || !eco.canAfford(bucket.cost) ? 'disabled' : ''}>
+            ${bucket.isOwned ? 'Owned' : 'Buy Upgrade'}
+          </button>
+        `;
+        const btn = card.querySelector('.btn-buy');
+        if (!bucket.isOwned) {
+          btn.addEventListener('click', () => {
+            sm.purchaseBucketUpgrade(game.player, eco, bucket.id);
+            renderShopUI();
+          });
+        }
+        shopBucketsGrid.appendChild(card);
+      }
+    }
+
+    btnSellAll.addEventListener('click', () => {
+      game.player.economy.sellAllFish(game.player.inventory);
+      renderShopUI();
+    });
+
+    game.onShopToggle = (isOpen, initialTab) => {
+      if (isOpen) {
+        renderShopUI();
+        shopModal.style.display = 'flex';
+        if (initialTab === 'upgrades') {
+          tabBtnShopBoats.click();
+          const upgradesTab = document.getElementById('tab-btn-shop-upgrades');
+          if (upgradesTab) upgradesTab.click();
+        } else if (initialTab === 'boats') {
+          tabBtnShopBoats.click();
+        } else if (initialTab === 'pirate') {
+          const pirateTab = document.getElementById('tab-btn-shop-pirate');
+          if (pirateTab) pirateTab.click();
+        } else {
+          tabBtnShopSell.click();
+        }
+      } else {
+        shopModal.style.display = 'none';
+      }
+    };
+
+    btnCloseShop.addEventListener('click', () => {
+      game.closeShop();
+    });
+
+    tabBtnShopSell.addEventListener('click', () => {
+      tabBtnShopSell.classList.add('active');
+      tabBtnShopRods.classList.remove('active');
+      tabBtnShopBuckets.classList.remove('active');
+      const boatsTab = document.getElementById('tab-btn-shop-boats');
+      if (boatsTab) boatsTab.classList.remove('active');
+      shopSellView.style.display = 'block';
+      shopRodsView.style.display = 'none';
+      shopBucketsView.style.display = 'none';
+      const boatsView = document.getElementById('shop-boats-view');
+      if (boatsView) boatsView.style.display = 'none';
+      const upgradesView = document.getElementById('shop-upgrades-view');
+      if (upgradesView) upgradesView.style.display = 'none';
+    });
+
+    tabBtnShopRods.addEventListener('click', () => {
+      tabBtnShopRods.classList.add('active');
+      tabBtnShopSell.classList.remove('active');
+      tabBtnShopBuckets.classList.remove('active');
+      const boatsTab = document.getElementById('tab-btn-shop-boats');
+      if (boatsTab) boatsTab.classList.remove('active');
+      shopRodsView.style.display = 'block';
+      shopSellView.style.display = 'none';
+      shopBucketsView.style.display = 'none';
+      const boatsView = document.getElementById('shop-boats-view');
+      if (boatsView) boatsView.style.display = 'none';
+      const upgradesView = document.getElementById('shop-upgrades-view');
+      if (upgradesView) upgradesView.style.display = 'none';
+    });
+
+    tabBtnShopBuckets.addEventListener('click', () => {
+      tabBtnShopBuckets.classList.add('active');
+      tabBtnShopSell.classList.remove('active');
+      tabBtnShopRods.classList.remove('active');
+      tabBtnShopBoats.classList.remove('active');
+      shopBucketsView.style.display = 'block';
+      shopSellView.style.display = 'none';
+      shopRodsView.style.display = 'none';
+      shopBoatsView.style.display = 'none';
+      const upgradesView = document.getElementById('shop-upgrades-view');
+      if (upgradesView) upgradesView.style.display = 'none';
+    });
+
+    const tabBtnShopBoats = document.getElementById('tab-btn-shop-boats');
+    const shopBoatsView = document.getElementById('shop-boats-view');
+    const shopBoatsGrid = document.getElementById('shop-boats-grid');
+
+    tabBtnShopBoats.addEventListener('click', () => {
+      tabBtnShopBoats.classList.add('active');
+      tabBtnShopSell.classList.remove('active');
+      tabBtnShopRods.classList.remove('active');
+      tabBtnShopBuckets.classList.remove('active');
+      shopBoatsView.style.display = 'block';
+      shopSellView.style.display = 'none';
+      shopRodsView.style.display = 'none';
+      shopBucketsView.style.display = 'none';
+      const upgradesView = document.getElementById('shop-upgrades-view');
+      if (upgradesView) upgradesView.style.display = 'none';
+
+      // Render boats
+      shopBoatsGrid.innerHTML = '';
+      const catalog = game.boatManager.getCatalog('harbor');
+      for (const boat of catalog) {
+        const card = document.createElement('div');
+        card.className = `shop-item-card ${boat.isOwned ? 'owned' : ''}`;
+        card.innerHTML = `
+          <div style="font-size: 1.8rem; margin-bottom: 6px;">⛵</div>
+          <div class="shop-item-name">${boat.name}</div>              <div class="shop-item-stats">
+            Speed: ${boat.maxSpeed} m/s | Turn: ${boat.turnRate} rad/s
+          </div>
+          <div class="boat-feature-tags">${[boat.hasFishingDeck ? '🎣 Deck' : '', boat.hasSonar ? '🔊 Sonar' : '', boat.hasRadar ? '📡 Radar' : '', boat.hasCannons ? '💣 Guns' : ''].filter(Boolean).join(' · ') || '⛵ Coastal'}</div>
+          <div class="shop-item-cost">💰 ${boat.cost} Coins</div>
+          <button class="btn-buy-upgrade" ${boat.isOwned ? 'disabled' : ''}>
+            ${boat.isOwned ? 'Owned' : 'Purchase Vessel'}
+          </button>
+        `;
+        const buyBtn = card.querySelector('.btn-buy-upgrade');
+        if (!boat.isOwned && buyBtn) {
+          buyBtn.addEventListener('click', () => {
+            const res = game.boatManager.purchaseBoat(boat.id, game.player.economy);
+            if (res.success) {
+              game.soundManager.playCoinSound();
+              tabBtnShopBoats.click();
+            } else {
+              alert(res.reason);
+            }
+          });
+        }
+        shopBoatsGrid.appendChild(card);
+      }
+    });
+
+    // Pirate Dock dealership: only Quartermaster Sable's corsair fleet.
+    const tabBtnShopPirate = document.getElementById('tab-btn-shop-pirate');
+    const shopPirateView = document.getElementById('shop-pirate-view');
+    const shopPirateGrid = document.getElementById('shop-pirate-grid');
+    const pirateCoins = document.getElementById('pirate-coins');
+
+    function renderPirateShopUI() {
+      if (!shopPirateGrid || !game.boatManager) return;
+      if (pirateCoins) pirateCoins.textContent = `${game.player.economy.getCoins()} Coins`;
+      shopPirateGrid.innerHTML = '';
+      const catalog = game.boatManager.getPirateCatalog();
+      if (catalog.length === 0) {
+        shopPirateGrid.innerHTML = '<div class="inv-empty-state" style="grid-column:1/-1;"><p>The corsair fleet is out raiding. Come back later.</p></div>';
+        return;
+      }
+      for (const boat of catalog) {
+        const card = document.createElement('div');
+        card.className = `shop-card pirate-boat-card ${boat.isOwned ? 'owned' : ''}`;
+        card.innerHTML = `
+          <div class="pirate-card-skull">☠</div>
+          <div class="shop-item-name">${boat.name}</div>
+          <div class="shop-item-stats">⚡ ${boat.maxSpeed} m/s · 🎯 ${boat.turnRate} turn · 📦 ${boat.capacity} berths</div>
+          <div class="boat-feature-tags">${[boat.hasFishingDeck ? '🎣 Fishing Deck' : '', boat.hasSonar ? '🔊 Sonar' : '', boat.hasRadar ? '📡 Radar' : '', boat.hasCannons ? '💣 Broadside' : ''].filter(Boolean).join(' · ') || '⛵ Corsair'}</div>
+          <p class="shop-card-desc">${boat.description}</p>
+          <div class="shop-item-cost">💰 ${boat.cost} Coins</div>
+          <button class="btn-buy-upgrade" ${boat.isOwned ? 'disabled' : ''}>${boat.isOwned ? 'In Your Fleet' : 'Buy Pirate Vessel'}</button>
+        `;
+        const buyBtn = card.querySelector('.btn-buy-upgrade');
+        if (!boat.isOwned && buyBtn) {
+          buyBtn.addEventListener('click', () => {
+            const res = game.boatManager.purchaseBoat(boat.id, game.player.economy);
+            if (res.success) {
+              game.soundManager.playCoinSound();
+              showToast(`${boat.name} added to your fleet — ${boat.maxSpeed} m/s`, 'success');
+              renderPirateShopUI();
+            } else {
+              showToast(res.reason);
+            }
+          });
+        }
+        shopPirateGrid.appendChild(card);
+      }
+    }
+
+    if (tabBtnShopPirate) {
+      tabBtnShopPirate.addEventListener('click', () => {
+        for (const tab of document.querySelectorAll('#shop-modal .inv-tab-btn')) tab.classList.remove('active');
+        tabBtnShopPirate.classList.add('active');
+        for (const viewId of ['shop-sell-view', 'shop-rods-view', 'shop-buckets-view', 'shop-boats-view', 'shop-pirate-view', 'shop-upgrades-view']) {
+          const view = document.getElementById(viewId);
+          if (view) view.style.display = 'none';
+        }
+        if (shopPirateView) shopPirateView.style.display = 'block';
+        renderPirateShopUI();
+      });
+    }
+
+    // Save, Load, Sound Button Handlers
+    const btnSave = document.getElementById('btn-save-click');
+    const btnLoad = document.getElementById('btn-load-click');
+    const btnSound = document.getElementById('btn-sound-click');
+    if (btnSave) {
+      btnSave.addEventListener('click', () => {
+        const res = game.saveGame();
+        if (res.success) alert('Game saved successfully!');
+      });
+    }
+    if (btnLoad) {
+      btnLoad.addEventListener('click', () => {
+        const res = game.loadGame();
+        if (res.success) alert('Game state restored!');
+        else alert('No valid save file found.');
+      });
+    }
+    if (btnSound) {
+      btnSound.addEventListener('click', () => {
+        const isMuted = game.soundManager.toggleMute();
+        btnSound.textContent = isMuted ? '🔇 Sound: OFF' : '🔊 Sound: ON';
+      });
+    }
+
+    // Diagnostics updater
+    const elFps = document.getElementById('diag-fps');
+    const elLevel = document.getElementById('diag-level');
+    const elZone = document.getElementById('diag-zone');
+    const elCoins = document.getElementById('diag-coins');
+    const elGems = document.getElementById('diag-gems');
+    const elRod = document.getElementById('diag-rod');
+    const elBucket = document.getElementById('diag-bucket');
+    const elFishingState = document.getElementById('diag-fishing-state');
+    const elPrompt = document.getElementById('diag-prompt');
+
+    setInterval(() => {
+      if (!game || !game.isRunning) return;
+      const d = game.getDiagnostics();
+      if (elFps) elFps.textContent = d.fps;
+      if (elLevel) elLevel.textContent = `Lvl ${d.playerLevel} (${d.playerXp} XP)`;
+      if (elZone) elZone.textContent = d.currentZone || 'Emerald Cove';
+      if (elCoins) elCoins.textContent = `💰 ${d.coins}`;
+      if (elGems) elGems.textContent = `💎 ${game.player?.economy?.getGems?.() ?? 0}`;
+      if (elBucket) {
+        elBucket.textContent = `${d.bucketCount} / ${d.bucketCapacity}`;
+      }
+      if (elRod) {
+        elRod.textContent = d.isRodEquipped ? 'YES (Equipped)' : 'NO (F to Equip)';
+        elRod.className = d.isRodEquipped ? 'diag-val highlight' : 'diag-val';
+      }
+      if (elFishingState) {
+        elFishingState.textContent = d.fishingState;
+        elFishingState.className = d.fishingState !== 'IDLE' ? 'diag-val highlight' : 'diag-val';
+      }
+      if (elPrompt) {
+        elPrompt.textContent = d.activePrompt;
+        elPrompt.className = d.activePrompt !== 'None' ? 'diag-val highlight' : 'diag-val';
+      }
+
+      // Update minigame gauges
+      if (game.fishingSystem && game.fishingSystem.state === 'REELING') {
+        const fs = game.fishingSystem;
+        tensionNeedle.style.left = `${fs.tension}%`;
+        progressFill.style.width = `${fs.catchProgress}%`;
+        minigamePercent.textContent = `${Math.round(fs.catchProgress)}%`;
+      }
+      if (typeof refreshExpansionHud === 'function') refreshExpansionHud();
+    }, 50);
+
+    /* ================= OCEAN ODYSSEY UI WIRING ================= */
+
+    // --- Toasts ---
+    const toastContainer = document.getElementById('toast-container');
+    function showToast(message, kind = 'info') {
+      if (!toastContainer || !message) return;
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${kind}`;
+      toast.textContent = message;
+      toastContainer.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add('toast-out');
+        setTimeout(() => toast.remove(), 300);
+      }, 2800);
+    }
+    game.onNotification = (message) => showToast(message);
+
+    // --- Fishing tools (difficulty + bait) ---
+    const selectDifficulty = document.getElementById('select-difficulty');
+    const selectBait = document.getElementById('select-bait');
+    if (selectBait && game.fishingSystem) {
+      for (const bait of game.fishingSystem.getBaitTypes()) {
+        const opt = document.createElement('option');
+        opt.value = bait.id;
+        opt.textContent = `${bait.icon} ${bait.name}`;
+        selectBait.appendChild(opt);
+      }
+      selectBait.value = game.fishingSystem.bait;
+      selectDifficulty.value = game.fishingSystem.difficulty;
+    }
+    if (selectDifficulty) {
+      selectDifficulty.addEventListener('change', () => {
+        game.fishingSystem.setDifficulty(selectDifficulty.value);
+        showToast(`Fishing mode: ${selectDifficulty.value}`);
+      });
+    }
+    if (selectBait) {
+      selectBait.addEventListener('change', () => {
+        game.fishingSystem.setBait(selectBait.value);
+        const bait = game.fishingSystem.getBaitTypes().find((b) => b.id === selectBait.value);
+        showToast(`Bait equipped: ${bait ? bait.name : selectBait.value}`);
+      });
+    }
+
+    // --- Mount Stable ---
+    const mountModal = document.getElementById('mount-modal');
+    const mountGrid = document.getElementById('mount-grid');
+    const mountCoins = document.getElementById('mount-coins');
+    const mountActiveLabel = document.getElementById('mount-active-label');
+
+    function renderMountUI() {
+      if (!mountModal || !game.mountManager) return;
+      const level = game.player.progression.getLevel();
+      const catalog = game.mountManager.getCatalog(level);
+      const active = game.mountManager.activeMount;
+      mountCoins.textContent = `${game.player.economy.getCoins()} Coins`;
+      mountActiveLabel.textContent = active ? `${active.name} (Lv ${active.level})` : 'None';
+      mountGrid.innerHTML = '';
+
+      for (const mount of catalog) {
+        const card = document.createElement('div');
+        card.className = `shop-card ${mount.isOwned ? 'owned' : ''} ${mount.isActive ? 'mount-active-card' : ''}`;
+        const canAfford = game.player.economy.canAfford(mount.cost);
+        let actionLabel;
+        let disabled = false;
+        if (mount.isActive) {
+          actionLabel = 'Riding';
+          disabled = true;
+        } else if (mount.isOwned) {
+          actionLabel = 'Summon Mount';
+        } else if (!mount.meetsLevel) {
+          actionLabel = `Requires Lv ${mount.requiredLevel}`;
+          disabled = true;
+        } else if (!canAfford) {
+          actionLabel = `Need ${mount.cost} Coins`;
+          disabled = true;
+        } else {
+          actionLabel = `Unlock — ${mount.cost} Coins`;
+        }
+
+        card.innerHTML = `
+          <div class="shop-card-icon">${mount.id === 'mount_turtle' ? '🐢' : mount.id === 'mount_crab' ? '🦀' : mount.id === 'mount_boar' ? '🐗' : mount.id === 'mount_crystal_deer' ? '🦌' : mount.id === 'mount_fox' ? '🦊' : mount.id === 'mount_wolf' ? '🐺' : mount.id === 'mount_lizard' ? '🦎' : '🐎'}</div>
+          <div class="shop-card-name">${mount.name}</div>
+          <span class="catch-rarity-badge rarity-${mount.rarity}">${mount.rarity}</span>
+          <p class="shop-card-desc">${mount.description}<br><strong>${mount.source}</strong> &middot; Speed ${mount.baseSpeed} / Sprint ${mount.sprintSpeed}</p>
+          <div class="mount-stats-row">
+            <span>Lv ${mount.level}</span><span>${mount.xp} XP</span><span>${mount.staminaMax} STA</span>
+          </div>
+          <button class="btn-shop-action ${mount.isOwned ? 'btn-summon' : 'btn-buy'}" ${disabled ? 'disabled' : ''}>${actionLabel}</button>
+        `;
+        const btn = card.querySelector('button');
+        if (!disabled) {
+          btn.addEventListener('click', () => {
+            if (mount.isOwned) {
+              game.summonMount(mount.id);
+            } else {
+              const res = game.unlockMount(mount.id);
+              if (res.success) showToast(`${mount.name} unlocked!`, 'success');
+              renderMountUI();
+            }
+          });
+        }
+        mountGrid.appendChild(card);
+      }
+    }
+
+    if (mountModal) {
+      game.onMountToggle = (isOpen) => {
+        if (isOpen) {
+          renderMountUI();
+          mountModal.style.display = 'flex';
+        } else {
+          mountModal.style.display = 'none';
+        }
+      };
+      document.getElementById('btn-close-mount').addEventListener('click', () => game.closeMountMenu());
+    }
+
+    // --- Fast Travel ---
+    const travelModal = document.getElementById('travel-modal');
+    const travelGrid = document.getElementById('travel-grid');
+
+    function renderTravelUI() {
+      if (!travelModal || !game.fastTravelManager) return;
+      const destinations = game.fastTravelManager.getDestinations();
+      travelGrid.innerHTML = '';
+      for (const dest of destinations) {
+        const card = document.createElement('div');
+        const cooldown = game.fastTravelManager.cooldownRemaining > 0;
+        card.className = `travel-card ${dest.isUnlocked ? 'unlocked' : 'locked'} ${dest.isLastVisited ? 'last-visited' : ''}`;
+        card.innerHTML = `
+          <div class="travel-icon">${dest.isUnlocked ? dest.icon : '🔒'}</div>
+          <div class="travel-name">${dest.name}</div>
+          <div class="travel-habitat">${dest.habitat} waters</div>
+          <p class="travel-desc">${dest.isUnlocked ? dest.description : `Discover ${dest.requiredZone || 'this region'}${dest.requiredLevel > 1 ? ` and reach Angler Lv ${dest.requiredLevel}` : ''}.`}</p>
+          <div class="travel-actions">
+            <button class="btn-shop-action btn-travel" ${!dest.isUnlocked || cooldown ? 'disabled' : ''}>${dest.isUnlocked ? (cooldown ? 'Recharging…' : 'Travel') : 'Locked'}</button>
+            <button class="btn-fav" title="Favourite destination">${dest.isFavorite ? '★' : '☆'}</button>
+          </div>
+        `;
+        const travelBtn = card.querySelector('.btn-travel');
+        if (dest.isUnlocked && !cooldown) {
+          travelBtn.addEventListener('click', () => game.fastTravel(dest.id));
+        }
+        const favBtn = card.querySelector('.btn-fav');
+        favBtn.addEventListener('click', () => {
+          game.fastTravelManager.toggleFavorite(dest.id);
+          renderTravelUI();
+        });
+        travelGrid.appendChild(card);
+      }
+    }
+
+    if (travelModal) {
+      game.onTravelToggle = (isOpen) => {
+        if (isOpen) {
+          renderTravelUI();
+          travelModal.style.display = 'flex';
+        } else {
+          travelModal.style.display = 'none';
+        }
+      };
+      document.getElementById('btn-close-travel').addEventListener('click', () => game.closeTravel());
+    }
+
+    // --- Fish Index 2.0 ---
+    const indexModal = document.getElementById('fish-index-modal');
+    const indexGrid = document.getElementById('fish-index-grid');
+    const indexSummary = document.getElementById('index-summary');
+    const indexProgressBadge = document.getElementById('index-progress-badge');
+    const indexSearch = document.getElementById('index-search');
+    const indexCategory = document.getElementById('index-category');
+    const indexHabitat = document.getElementById('index-habitat');
+    const indexRarity = document.getElementById('index-rarity');
+    const indexSort = document.getElementById('index-sort');
+    const indexDiscoveredOnly = document.getElementById('index-discovered-only');
+    let indexCategoriesBuilt = false;
+    let indexFiltersBuilt = false;
+
+    function renderFishIndexUI() {
+      if (!indexModal || !game.fishIndex) return;
+      const summary = game.fishIndex.getSummary();
+      indexProgressBadge.textContent = `${summary.discovered} / ${summary.total}`;
+
+      if (!indexCategoriesBuilt) {
+        for (const cat of summary.categories) {
+          const opt = document.createElement('option');
+          opt.value = cat.id;
+          opt.textContent = `${cat.name} (${cat.discovered}/${cat.total})`;
+          indexCategory.appendChild(opt);
+        }
+        indexCategoriesBuilt = true;
+      }
+
+      if (!indexFiltersBuilt) {
+        for (const habitat of summary.habitats) {
+          const opt = document.createElement('option');
+          opt.value = habitat.id;
+          opt.textContent = `${habitat.name} (${habitat.discovered}/${habitat.total})`;
+          indexHabitat.appendChild(opt);
+        }
+        for (const rarity of summary.rarities) {
+          const opt = document.createElement('option');
+          opt.value = rarity.id;
+          opt.textContent = `${rarity.name} (${rarity.discovered}/${rarity.total})`;
+          indexRarity.appendChild(opt);
+        }
+        indexFiltersBuilt = true;
+      }
+      const hint = game.fishIndex.getUndiscoveredHint();
+
+      const records = summary.biggest || summary.rarest || summary.mostCaught
+        ? `
+          <div class="index-record"><span>Biggest</span><strong>${summary.biggest ? `${summary.biggest.icon} ${summary.biggest.name} — ${summary.biggest.weight.toFixed(2)} kg` : '—'}</strong></div>
+          <div class="index-record"><span>Rarest</span><strong>${summary.rarest ? `${summary.rarest.icon} ${summary.rarest.name} (${summary.rarest.rarity})` : '—'}</strong></div>
+          <div class="index-record"><span>Most Caught</span><strong>${summary.mostCaught ? `${summary.mostCaught.icon} ${summary.mostCaught.name} — ${summary.mostCaught.timesCaught}x` : '—'}</strong></div>
+        `
+        : '<div class="index-record index-record-wide"><span>No catches yet — cast a line to start your collection.</span></div>';
+
+      indexSummary.innerHTML = `
+        <div class="index-stat"><span class="index-stat-val">${summary.percent}%</span><span class="index-stat-label">Discovered</span></div>
+        <div class="index-stat"><span class="index-stat-val">${summary.total}</span><span class="index-stat-label">Catalog fish</span></div>
+        <div class="index-stat"><span class="index-stat-val">${summary.catalogValue.toLocaleString()}</span><span class="index-stat-label">Catalog value</span></div>
+        ${summary.categories.map((c) => `<div class="index-cat"><span>${c.name}</span><div class="cat-track"><div class="cat-fill" style="width:${c.percent}%"></div></div><small>${c.discovered}/${c.total}</small></div>`).join('')}
+        ${records}
+        <div class="index-record index-record-wide"><span>Collection milestones</span><strong>${summary.milestones.map((m) => `${m.achieved ? '✅' : '⬜'} ${m.threshold}%`).join(' · ')}</strong></div>
+        ${hint ? `<div class="index-record index-record-wide"><span>Field hint</span><strong>${hint.category} · ${hint.hint}</strong></div>` : ''}
+      `;
+
+      const entries = game.fishIndex.getEntries({
+        search: indexSearch.value,
+        category: indexCategory.value,
+        habitat: indexHabitat.value,
+        rarity: indexRarity.value,
+        sort: indexSort.value,
+        discoveredOnly: indexDiscoveredOnly.checked,
+      });
+
+      indexGrid.innerHTML = entries.length === 0
+        ? '<div class="inv-empty-state" style="grid-column: 1/-1;"><div class="inv-empty-icon">🔍</div><p>No species match this filter.</p></div>'
+        : '';
+
+      for (const entry of entries) {
+        const card = document.createElement('div');
+        card.className = entry.discovered ? 'fish-card' : 'fish-card encyclopedia-card locked';
+        const travelDest = game.fishIndex.getHabitatDestination(entry.speciesId, game.fastTravelManager);
+        const canTravel = entry.discovered && travelDest && game.fastTravelManager.isUnlocked(travelDest.id);
+        card.innerHTML = `
+          <div class="fish-card-icon">${entry.icon}</div>
+          <div class="fish-card-name">${entry.discovered ? entry.trueName : '???'}</div>
+          <span class="catch-rarity-badge rarity-${entry.rarity}">${entry.rarity}</span>
+          <div class="fish-card-meta">${entry.discovered ? `${entry.category} · Best ${entry.maxWeight.toFixed(2)} kg · ${entry.timesCaught} caught` : `${entry.category} · Undiscovered`}</div>
+          <div class="fish-card-meta">${entry.discovered ? `Bait: ${entry.preferredBait} · ${entry.activeTime.join(', ')}` : `Habitat: ${entry.habitat.join(', ')}`}</div>
+          <div class="fish-card-price">${entry.discovered ? `${entry.basePrice} base coins` : '???'}</div>
+          ${canTravel ? `<button class="btn-index-travel" data-species="${entry.speciesId}">Travel to Habitat</button>` : ''}
+        `;
+        const travelBtn = card.querySelector('.btn-index-travel');
+        if (travelBtn) {
+          travelBtn.addEventListener('click', () => {
+            const res = game.travelToFishHabitat(entry.speciesId);
+            if (res.success) game.toggleFishIndex(false);
+          });
+        }
+        indexGrid.appendChild(card);
+      }
+    }
+
+    if (indexModal) {
+      game.onFishIndexToggle = (isOpen) => {
+        if (isOpen) {
+          renderFishIndexUI();
+          indexModal.style.display = 'flex';
+        } else {
+          indexModal.style.display = 'none';
+        }
+      };
+      document.getElementById('btn-close-index').addEventListener('click', () => game.toggleFishIndex(false));
+      indexSearch.addEventListener('input', renderFishIndexUI);
+      indexCategory.addEventListener('change', renderFishIndexUI);
+      indexHabitat.addEventListener('change', renderFishIndexUI);
+      indexRarity.addEventListener('change', renderFishIndexUI);
+      indexSort.addEventListener('change', renderFishIndexUI);
+      indexDiscoveredOnly.addEventListener('change', renderFishIndexUI);
+    }
+
+    // --- Ship upgrade panel (shipyard) ---
+    const shopUpgradesView = document.getElementById('shop-upgrades-view');
+    const shopUpgradesGrid = document.getElementById('shop-upgrades-grid');
+    const upgradeCoins = document.getElementById('upgrade-coins');
+
+    function renderShipUpgradesUI() {
+      if (!shopUpgradesGrid || !game.boatManager) return;
+      if (upgradeCoins) upgradeCoins.textContent = `${game.player.economy.getCoins()} Coins`;
+      shopUpgradesGrid.innerHTML = '';
+      const owned = Array.from(game.boatManager.ownedBoatIds);
+      if (owned.length === 0) {
+        shopUpgradesGrid.innerHTML = '<div class="inv-empty-state" style="grid-column:1/-1;"><div class="inv-empty-icon">⛵</div><p>Buy a vessel in the Boat Dealership tab first.</p></div>';
+        return;
+      }
+
+      for (const boatId of owned) {
+        const def = game.boatManager.getBoatDef(boatId);
+        if (!def) continue;
+        const info = game.boatManager.getBoatUpgrades(boatId);
+        const card = document.createElement('div');
+        card.className = 'shop-card ship-upgrade-card';
+        card.innerHTML = `
+          <div class="ship-upgrade-head"><strong>⛵ ${def.name}</strong><span>Speed ${info.effectiveStats.maxSpeed} · Storage ${info.effectiveStats.storageCapacity}</span></div>
+          ${info.upgrades.map((u) => `
+            <div class="ship-upgrade-row">
+              <span class="upgrade-name">${u.icon} ${u.name}</span>
+              <span class="upgrade-level">Lv ${u.level}/${u.maxLevel}</span>
+              <button class="btn-shop-action btn-buy btn-upgrade-buy" data-boat="${boatId}" data-upgrade="${u.id}" ${u.isMax || !game.player.economy.canAfford(u.cost) ? 'disabled' : ''}>
+                ${u.isMax ? 'MAX' : `${u.cost} Coins`}
+              </button>
+            </div>
+          `).join('')}
+        `;
+        for (const btn of card.querySelectorAll('.btn-upgrade-buy')) {
+          if (btn.disabled) continue;
+          btn.addEventListener('click', () => {
+            const res = game.boatManager.purchaseUpgrade(btn.dataset.boat, btn.dataset.upgrade, game.player.economy);
+            if (res.success) {
+              showToast(`${btn.dataset.upgrade} upgraded on ${def.name}`, 'success');
+            } else {
+              showToast(res.reason);
+            }
+            renderShipUpgradesUI();
+          });
+        }
+        shopUpgradesGrid.appendChild(card);
+      }
+    }
+
+    const shopTabViewMap = {
+      'tab-btn-shop-sell': 'shop-sell-view',
+      'tab-btn-shop-rods': 'shop-rods-view',
+      'tab-btn-shop-buckets': 'shop-buckets-view',
+      'tab-btn-shop-boats': 'shop-boats-view',
+      'tab-btn-shop-pirate': 'shop-pirate-view',
+      'tab-btn-shop-upgrades': 'shop-upgrades-view',
+    };
+    for (const btn of document.querySelectorAll('#shop-modal .inv-tab-btn')) {
+      btn.addEventListener('click', () => {
+        for (const tabBtn of document.querySelectorAll('#shop-modal .inv-tab-btn')) {
+          tabBtn.classList.remove('active');
+        }
+        btn.classList.add('active');
+        for (const viewId of Object.values(shopTabViewMap)) {
+          const view = document.getElementById(viewId);
+          if (view) view.style.display = 'none';
+        }
+        const target = document.getElementById(shopTabViewMap[btn.id]);
+        if (target) target.style.display = 'block';
+        if (btn.id === 'tab-btn-shop-upgrades') renderShipUpgradesUI();
+        if (btn.id === 'tab-btn-shop-pirate') renderPirateShopUI();
+      });
+    }
+
+    // --- Quick access bar ---
+    const quickTravel = document.getElementById('quick-btn-travel');
+    const quickIndex = document.getElementById('quick-btn-index');
+    const quickMount = document.getElementById('quick-btn-mount');
+    const quickShipyard = document.getElementById('quick-btn-shipyard');
+    if (quickTravel) quickTravel.addEventListener('click', () => game.openTravel());
+    if (quickIndex) quickIndex.addEventListener('click', () => game.toggleFishIndex(true));
+    if (quickMount) quickMount.addEventListener('click', () => game.toggleMountMenu(true));
+    if (quickShipyard) quickShipyard.addEventListener('click', () => game.openShop('boats'));
+
+    // --- Expansion HUD ---
+    const mountHud = document.getElementById('mount-hud');
+    const mountHudName = document.getElementById('mount-hud-name');
+    const mountHudLevel = document.getElementById('mount-hud-level');
+    const mountStaminaFill = document.getElementById('mount-stamina-fill');
+    const diagClock = document.getElementById('diag-clock');
+    const diagMount = document.getElementById('diag-mount');
+    const diagTravel = document.getElementById('diag-travel');
+    const diagIndex = document.getElementById('diag-index');
+
+    function refreshExpansionHud() {
+      if (!game || !game.mountManager) return;
+      const mount = game.mountManager.activeMount;
+      if (mountHud) {
+        mountHud.style.display = mount && mount.isMounted ? 'block' : 'none';
+        if (mount) {
+          mountHudName.textContent = mount.name;
+          mountHudLevel.textContent = `Lv ${mount.level}`;
+          const pct = mount.getStaminaPercent();
+          mountStaminaFill.style.width = `${pct}%`;
+          mountStaminaFill.style.background = pct < 25 ? '#f87171' : pct < 60 ? '#fbbf24' : '#4ade80';
+        }
+      }
+      if (diagClock && game.worldClock) diagClock.textContent = `${game.worldClock.getTimeString()} (${game.worldClock.getPeriod()})`;
+      if (diagMount) diagMount.textContent = mount && mount.isMounted ? `${mount.name} Lv${mount.level}` : 'None';
+      if (diagTravel && game.fastTravelManager) diagTravel.textContent = `${game.fastTravelManager.unlockedIds.size} / ${game.fastTravelManager.destinations.length}`;
+      if (diagIndex && game.fishIndex) {
+        const s = game.fishIndex.getSummary();
+        diagIndex.textContent = `${s.discovered} / ${s.total} (${s.percent}%)`;
+      }
+    }
+    refreshExpansionHud();
+
+    /* ================= EXPANSION 4.0 START LOBBY ================= */
+    const lobbyOverlay = document.getElementById('lobby-overlay');
+    const lobbyCreditsPanel = document.getElementById('lobby-credits-panel');
+    const lobbySkinsPanel = document.getElementById('lobby-skins-panel');
+    const lobbyCustomizePanel = document.getElementById('lobby-customize-panel');
+    const lobbySkinGrid = document.getElementById('lobby-skin-grid');
+    const lobbySkinCoins = document.getElementById('lobby-skin-coins');
+    const lobbyCoins = document.getElementById('lobby-coins');
+    const ccControls = document.getElementById('cc-controls');
+    const ccAvatar = document.getElementById('cc-avatar');
+    const lobbyPanels = [lobbyCreditsPanel, lobbySkinsPanel, lobbyCustomizePanel];
+
+    function colorCss(value) {
+      return `#${Number(value || 0).toString(16).padStart(6, '0')}`;
+    }
+
+    function refreshLobbyCoins() {
+      const coins = game.player.economy.getCoins();
+      if (lobbyCoins) lobbyCoins.textContent = coins;
+      if (lobbySkinCoins) lobbySkinCoins.textContent = coins;
+    }
+
+    function showLobbyPanel(panel) {
+      for (const entry of lobbyPanels) {
+        if (entry) entry.style.display = entry === panel ? 'block' : 'none';
+      }
+      lobbyOverlay.classList.add('lobby-sheet-open');
+      refreshLobbyCoins();
+    }
+
+    function hideLobbyPanels() {
+      for (const entry of lobbyPanels) {
+        if (entry) entry.style.display = 'none';
+      }
+      lobbyOverlay.classList.remove('lobby-sheet-open');
+    }
+
+    function renderLobbySkinShop() {
+      if (!lobbySkinGrid || !game.characterCustomization) return;
+      refreshLobbyCoins();
+      lobbySkinGrid.innerHTML = '';
+      const coins = game.player.economy.getCoins();
+      for (const item of game.characterCustomization.getCatalog()) {
+        const { appearance } = item;
+        const card = document.createElement('div');
+        card.className = `skin-card ${item.isEquipped ? 'equipped' : ''}`;
+        card.innerHTML = `
+          <div class="skin-icon">${item.icon}</div>
+          <strong>${item.name}</strong>
+          <div class="skin-swatches">
+            <i style="background:${colorCss(appearance.skinColor)}"></i>
+            <i style="background:${colorCss(appearance.shirtColor)}"></i>
+            <i style="background:${colorCss(appearance.pantsColor)}"></i>
+            <i style="background:${colorCss(appearance.hatColor)}"></i>
+            <i style="background:${colorCss(appearance.bandColor)}"></i>
+          </div>
+          <p>${item.description}</p>
+          <span class="skin-price">${item.price === 0 ? 'FREE' : `💰 ${item.price}`}</span>
+          <button class="${item.isEquipped ? 'skin-owned' : item.isOwned ? 'skin-equip' : ''}" ${item.isEquipped ? 'disabled' : ''}>
+            ${item.isEquipped ? 'Equipped' : item.isOwned ? 'Equip Outfit' : (coins >= item.price ? 'Buy & Equip' : `Need ${item.price - coins} more`)}
+          </button>
+        `;
+        const button = card.querySelector('button');
+        if (button && !item.isEquipped) {
+          button.addEventListener('click', () => {
+            if (item.isOwned) {
+              const result = game.characterCustomization.equipSkin(item.id);
+              if (result.success) showToast(`${item.name} equipped`, 'success');
+            } else {
+              const result = game.characterCustomization.purchaseSkin(item.id, game.player.economy);
+              if (result.success) showToast(`${item.name} added to your wardrobe`, 'success');
+              else showToast(result.reason);
+            }
+            renderLobbySkinShop();
+            refreshLobbyCoins();
+          });
+        }
+        lobbySkinGrid.appendChild(card);
+      }
+    }
+
+    function renderCharacterCustomizer() {
+      if (!ccControls || !ccAvatar) return;
+      const appearance = game.player.getAppearance();
+      ccAvatar.style.setProperty('--cc-skin', colorCss(appearance.skinColor));
+      ccAvatar.style.setProperty('--cc-shirt', colorCss(appearance.shirtColor));
+      ccAvatar.style.setProperty('--cc-pants', colorCss(appearance.pantsColor));
+      ccAvatar.style.setProperty('--cc-hat', colorCss(appearance.hatColor));
+      ccAvatar.style.setProperty('--cc-band', colorCss(appearance.bandColor));
+      ccAvatar.dataset.face = appearance.faceStyle || 'oval';
+      ccAvatar.dataset.hair = appearance.hairStyle || 'short';
+      ccAvatar.dataset.beard = appearance.facialHair || 'none';
+      ccAvatar.dataset.pack = appearance.backpackStyle || 'expedition';
+      ccAvatar.dataset.hat = appearance.hatStyle || 'straw';
+      ccControls.innerHTML = '';
+
+      const groups = [
+        { key: 'skinColor', title: 'Skin Tone', palette: CharacterPalettes.skin },
+        { key: 'shirtColor', title: 'Shirt', palette: CharacterPalettes.shirt },
+        { key: 'pantsColor', title: 'Trousers', palette: CharacterPalettes.pants },
+        { key: 'hatColor', title: 'Hat Colour', palette: CharacterPalettes.hat },
+        { key: 'bandColor', title: 'Hat Band', palette: CharacterPalettes.band },
+        { key: 'faceStyle', title: 'Face Shape', options: CharacterPalettes.faceStyle },
+        { key: 'hairStyle', title: 'Hair', options: CharacterPalettes.hairStyle },
+        { key: 'facialHair', title: 'Facial Hair', options: CharacterPalettes.facialHair },
+        { key: 'hatStyle', title: 'Hat Style', options: CharacterPalettes.hatStyle },
+        { key: 'backpackStyle', title: 'Backpack', options: CharacterPalettes.backpackStyle },
+      ];
+
+      for (const group of groups) {
+        const row = document.createElement('div');
+        row.className = 'cc-group';
+        const entries = group.options || group.palette;
+        const isStyle = Boolean(group.options);
+        const current = entries.find((entry) => (isStyle ? entry.id : entry.color) === appearance[group.key]);
+        row.innerHTML = `<div class="cc-group-head">${group.title}<span>${current ? current.label : 'Custom'}</span></div><div class="cc-swatches ${isStyle ? 'cc-style-options' : ''}"></div>`;
+        const swatches = row.querySelector('.cc-swatches');
+        for (const entry of entries) {
+          const button = document.createElement('button');
+          if (isStyle) {
+            const selected = entry.id === appearance[group.key];
+            button.className = `cc-style-option ${selected ? 'selected' : ''}`;
+            button.textContent = entry.label;
+            button.title = entry.label;
+            button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+            button.addEventListener('click', () => {
+              game.applyCharacterAppearance({ [group.key]: entry.id });
+              renderCharacterCustomizer();
+            });
+          } else {
+            button.className = `cc-swatch ${entry.color === appearance[group.key] ? 'selected' : ''}`;
+            button.style.setProperty('--swatch', colorCss(entry.color));
+            button.title = entry.label;
+            button.setAttribute('aria-label', entry.label);
+            button.addEventListener('click', () => {
+              game.applyCharacterAppearance({ [group.key]: entry.color });
+              renderCharacterCustomizer();
+            });
+          }
+          swatches.appendChild(button);
+        }
+        ccControls.appendChild(row);
+      }
+    }
+
+    document.getElementById('lobby-start')?.addEventListener('click', () => {
+      game.beginAdventure();
+      hideLobbyPanels();
+      lobbyOverlay.classList.add('lobby-closed');
+      showToast('Welcome to Driftwood Isle. Press E at the pier to fish.', 'success');
+    });
+    document.getElementById('lobby-open-credits')?.addEventListener('click', () => showLobbyPanel(lobbyCreditsPanel));
+    document.getElementById('lobby-open-skins')?.addEventListener('click', () => {
+      renderLobbySkinShop();
+      showLobbyPanel(lobbySkinsPanel);
+    });
+    document.getElementById('lobby-open-customize')?.addEventListener('click', () => {
+      renderCharacterCustomizer();
+      showLobbyPanel(lobbyCustomizePanel);
+    });
+    for (const back of document.querySelectorAll('[data-lobby-back]')) {
+      back.addEventListener('click', hideLobbyPanels);
+    }
+    document.getElementById('lobby-randomize')?.addEventListener('click', () => {
+      const pick = (palette) => palette[Math.floor(Math.random() * palette.length)].color;
+      const pickStyle = (options) => options[Math.floor(Math.random() * options.length)].id;
+      game.applyCharacterAppearance({
+        skinColor: pick(CharacterPalettes.skin),
+        shirtColor: pick(CharacterPalettes.shirt),
+        pantsColor: pick(CharacterPalettes.pants),
+        hatColor: pick(CharacterPalettes.hat),
+        bandColor: pick(CharacterPalettes.band),
+        faceStyle: pickStyle(CharacterPalettes.faceStyle),
+        hairStyle: pickStyle(CharacterPalettes.hairStyle),
+        facialHair: pickStyle(CharacterPalettes.facialHair),
+        hatStyle: pickStyle(CharacterPalettes.hatStyle),
+        backpackStyle: pickStyle(CharacterPalettes.backpackStyle),
+      });
+      renderCharacterCustomizer();
+      showToast('New face, hair and gear generated', 'success');
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || !game.isLobbyOpen) return;
+      hideLobbyPanels();
+    });
+    document.getElementById('btn-main-menu')?.addEventListener('click', () => {
+      game.openLobby();
+      hideLobbyPanels();
+      lobbyOverlay.classList.remove('lobby-closed');
+      refreshLobbyCoins();
+    });
+    refreshLobbyCoins();
+    if (game.isLobbyOpen) hideLobbyPanels();
+
+    // Expansion 2.0 command center, survival HUD and boss combat HUD.
+    initExpansionUI(game, showToast);
+    // Expansion 8.0 story book and live objectives card.
+    initStoryJournalUI(game, { showToast });
+    initObjectivesHUD(game);
+    document.getElementById('quick-btn-story')?.addEventListener('click', () => game.toggleStoryJournal(true));
+  </script>
+</body>
+</html>
